@@ -1,39 +1,42 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import { useAuthStore } from "@/auth/auth-store";
+import SafeScreen from "@/components/safe-screen";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const router = useRouter();
+  // segment = lokasi folder/aplikasi
+  const segments = useSegments();
+
+  const { refreshUser, user, token, profile } = useAuthStore();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    (async () => {
+      await refreshUser();
+    })();
+  }, []);
 
-  if (!loaded) {
-    return null;
-  }
+  // handle navigarion
+  useEffect(() => {
+    const inAuthScreen = segments[0] === "(auth)";
+    const isSignedIn = user && token;
+
+    if (!isSignedIn && !inAuthScreen) router.replace("/(auth)");
+    else if (isSignedIn && inAuthScreen) router.replace("/(tabs)");
+  }, [user, token]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <SafeScreen>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(auth)" />
+        </Stack>
+      </SafeScreen>
+      {/* To show mobile status bar (clock,battery,wifi) */}
+      <StatusBar style="dark" />
+    </SafeAreaProvider>
   );
 }
