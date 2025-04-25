@@ -64,10 +64,10 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
-    height: 50,
+    height: 45,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 16,
+    marginBottom: 16,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -91,6 +91,25 @@ const styles = StyleSheet.create({
   link: {
     color: COLORS.primary,
     fontWeight: "600",
+  },
+  editButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 1,
+    width: "100%",
+  },
+  logoutButton: {
+    backgroundColor: COLORS.danger,
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });
 

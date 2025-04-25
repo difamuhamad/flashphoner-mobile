@@ -1,30 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { AuthStore, Profile, Result } from "@/types/types";
 import { create } from "zustand";
-
-type AuthStore = {
-  user: any;
-  profile: any;
-  token?: string;
-  email: string | null;
-  password: string | null;
-  isLoading: boolean;
-  register: (
-    username: string,
-    email: string,
-    password: string
-  ) => Promise<{ success: boolean; error?: string }>;
-  signIn: (
-    email: string | null,
-    password: string | null
-  ) => Promise<{ success: boolean; error?: string }>;
-  refreshUser: () => Promise<void>;
-  logout: () => Promise<void>;
-};
-
-type SupabaseSingIn = {
-  email: string;
-  password: string;
-};
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
@@ -33,6 +9,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isLoading: false,
   email: null,
   password: null,
+  isCheckingAuth: true,
 
   //   Register function (supabase)
   register: async (username, email, password) => {
@@ -41,17 +18,19 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       const { data, error } = await supabase.auth.signUp({ email, password });
 
-      if (error || !data.user)
+      if (error || !data.user) {
+        console.log(error, error?.message);
         throw new Error(
           error?.message || "Signup failed, please try again later"
         );
+      }
 
       // Insert to db users with the same id
       const { error: insertError } = await supabase
         .from("mobile_profiles")
         .insert({
           id: data.user.id,
-          username,
+          username: username,
           email: data.user.email,
         });
 
@@ -113,6 +92,21 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
   },
 
+  // Find user profiles
+  findUser: async (phone_number: string) => {
+    try {
+      let { data: mobile_profiles, error } = await supabase
+        .from("mobile_profiles")
+        .select("*")
+        .eq("phone_number", phone_number);
+      if (!mobile_profiles || error) {
+        return { success: false, message: "User not found", data: null };
+      }
+      return { success: true, message: "User found", data: mobile_profiles };
+    } catch (error) {
+      return { success: false, message: "Error fetching data", data: null };
+    }
+  },
   //   Get the user data while opening the app
   refreshUser: async () => {
     try {
@@ -135,12 +129,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
           token: session.data.session?.access_token,
           profile,
         });
+        return { success: true, message: "Successfully fetch user data" };
       } else {
         set({ user: null, token: undefined, profile: undefined });
       }
+      return { success: false, message: "Failed to fetch user data" };
     } catch (err) {
-      console.error("Failed to refresh user", err);
       set({ user: null, token: undefined, profile: undefined });
+      return { success: false, message: "Failed to fetch user data" };
+    } finally {
+      set({ isCheckingAuth: false });
     }
   },
 
@@ -148,5 +146,50 @@ export const useAuthStore = create<AuthStore>((set) => ({
   logout: async () => {
     await supabase.auth.signOut();
     set({ user: null, token: undefined });
+  },
+
+  //  Edit function
+  editProfile: async (profile: Profile, original: Profile): Promise<Result> => {
+    const changes: Partial<Profile> = {};
+
+    if (profile.username !== original.username)
+      changes.username = profile.username;
+    if (profile.full_name !== original.full_name)
+      changes.full_name = profile.full_name;
+    if (profile.phone_number !== original.phone_number)
+      changes.phone_number = profile.phone_number;
+
+    // Check if some value is changed
+    if (Object.keys(changes).length > 0) {
+      const { data, error } = await supabase
+        .from("mobile_profiles")
+        .update(changes)
+        .eq("id", profile.id);
+
+      if (error) return { success: false, message: error.message };
+
+      // Update store
+      set((state) => ({ profile: { ...state.profile, ...changes } }));
+      return { success: true, message: "Profile updated successfully" };
+    }
+
+    // Jika tidak ada perubahan, tetap return success
+    return { success: false, message: "No changes detected" };
+  },
+
+  // Add Contact
+  addNewContact: async (phone_number, full_name) => {
+    try {
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert([{ phone_number, full_name }])
+        .select("*");
+      if (!data || error) {
+        return { success: false, message: error };
+      }
+      return { success: true, message: "Contact has been saved" };
+    } catch (error) {
+      return { success: false, message: "Error saving contact" };
+    }
   },
 }));

@@ -15,17 +15,21 @@ import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "@/constants/colors";
 import { useAuthStore } from "@/auth/auth-store";
+import Loader from "@/components/loader";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setshowPassword] = useState(false);
-  const { signIn, isLoading } = useAuthStore();
+  const { signIn, isLoading, isCheckingAuth } = useAuthStore();
 
   const handleLogin = async () => {
     const result = await signIn(email, password);
     if (!result.success) Alert.alert("Failed", result.error);
   };
+
+  // Loader when entering
+  if (isCheckingAuth) return <Loader />;
 
   return (
     // To avoid the input hidden becuase of keyboard
@@ -98,6 +102,7 @@ const Login = () => {
                 </TouchableOpacity>
               </View>
 
+              {/* Button */}
               <TouchableOpacity
                 style={[styles.button, isLoading && { opacity: 0.6 }]}
                 onPress={handleLogin}

@@ -1,24 +1,19 @@
-import { View, Text, Image, ScrollView } from "react-native";
+import { View, Text } from "react-native";
 import React from "react";
-import { images } from "@/constants/images";
+import styles from "@/assets/styles/home-styles";
+import { Image } from "expo-image";
 
 const Index = () => {
   return (
-    <View className="flex-1 bg-white justify-center items-center">
-      <Image source={images.mainLogo} className="w-8 z-0 self-center" />
-      <ScrollView
-        className="flex-1 w-full px-5"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <View className="w-full items-center">
-          <Text className="text-center">Home Page Test</Text>
-        </View>
-      </ScrollView>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Image
+          source={require("../../assets/images/2.png")}
+          style={styles.illustrationImage}
+        />
+        <Text style={styles.headerTitle}>Flashphoner Mobile</Text>
+        <Text style={styles.headerSubtitle}>Next, what should i do??</Text>
+      </View>
     </View>
   );
 };

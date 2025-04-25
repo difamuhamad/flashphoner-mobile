@@ -1,4 +1,3 @@
-import { View, Text } from "react-native";
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,11 +37,11 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="contacts"
+        name="dial"
         options={{
-          title: "Contacts",
+          title: "Dial",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="call-outline" size={size} color={color} />
+            <Ionicons name="keypad-outline" size={size} color={color} />
           ),
         }}
       />

@@ -7,16 +7,19 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const router = useRouter();
-  // segment = lokasi folder/aplikasi
+  // segment = folder/app location
   const segments = useSegments();
 
   const { refreshUser, user, token, profile } = useAuthStore();
 
+  //   fetchUser();
+  // }, []);
   useEffect(() => {
     (async () => {
       await refreshUser();
     })();
   }, []);
+  // code above is IIFE (invoked function)
 
   // handle navigarion
   useEffect(() => {
